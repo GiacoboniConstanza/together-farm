@@ -6,17 +6,19 @@
     var x = cell.x;
     var y = cell.y;
     var r = orig.apply(this, arguments);
-    if (r && ct && window.parent !== window) {
-      window.parent.postMessage(
-        {
-          source: "together-farm",
-          type: "harvest",
-          cropType: ct,
-          x: x,
-          y: y,
-        },
-        "*",
-      );
+    if (r && ct) {
+      var msg = {
+        source: "together-farm",
+        type: "harvest",
+        cropType: ct,
+        x: x,
+        y: y,
+      };
+      if (window.parent !== window) {
+        window.parent.postMessage(msg, "*");
+      } else {
+        window.postMessage(msg, "*");
+      }
     }
     return r;
   };
@@ -25,13 +27,15 @@
 window.addEventListener("message", function (ev) {
   if (!ev.data || ev.data.source !== "together-farm-parent") return;
   if (ev.data.type === "requestSnapshot" && window.__togetherGame) {
-    window.parent.postMessage(
-      {
-        source: "together-farm",
-        type: "snapshot",
-        payload: window.__togetherGame.serialize(),
-      },
-      "*",
-    );
+    var snap = {
+      source: "together-farm",
+      type: "snapshot",
+      payload: window.__togetherGame.serialize(),
+    };
+    if (window.parent !== window) {
+      window.parent.postMessage(snap, "*");
+    } else {
+      window.postMessage(snap, "*");
+    }
   }
 });

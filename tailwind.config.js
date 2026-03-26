@@ -3,6 +3,8 @@ import forms from "@tailwindcss/forms";
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  /* El simulador de granja asigna estas clases solo desde JS (public/farmsim); no están en JSX. */
+  safelist: [{ pattern: /^tf-farmsim/ }],
   theme: {
     extend: {
       colors: {

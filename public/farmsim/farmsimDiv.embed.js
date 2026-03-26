@@ -2,6 +2,26 @@
 var FarmsimDiv = new (function(){
 'use strict';
 
+// Together Farm palette (tailwind.config.js)
+var TF_BORDER = '#4a3737';
+var TF_INK = '#5a514c';
+var TF_CREAM = '#F3F5FA';
+var TF_PEACH = '#CFDEF6';
+var TF_MINT = '#91D9AE';
+var TF_SKY = '#7EBAE8';
+var TF_LAVENDER = '#D2C2F4';
+var TF_YELLOW = '#F2F8D0';
+var TF_PINK = '#ACA0DC';
+
+/** Prefijo para assets cuando el sim corre en la SPA (React); vacío en embed.html. */
+function tfU(rel){
+	var b = typeof window.__TOGETHER_FARMSIM_BASE__ === 'string' ? window.__TOGETHER_FARMSIM_BASE__ : '';
+	return b + rel;
+}
+function tfUrl(rel){
+	return 'url("' + tfU(rel) + '")';
+}
+
 // Idioma: japonés si el navegador está en ja; en caso contrario español (app Together Farm).
 var navLang = (window.navigator.language || window.navigator.userLanguage || "").substr(0, 2);
 var gameLng = navLang === "ja" ? "ja" : "es";
@@ -51,21 +71,21 @@ var statusBarWidth = 200;
 
 
 var weatherIcons = [
-	{caption: i18n.t("Sunny"), texture: "url(assets/sunny.png)"},
-	{caption: i18n.t("Partly cloudy"), texture: "url(assets/partlycloudy.png)"},
-	{caption: i18n.t("Cloudy"), texture: "url(assets/cloudy.png)"},
-	{caption: i18n.t("Rainy"), texture: "url(assets/rainy.png)"}
+	{caption: i18n.t("Sunny"), texture: tfUrl("assets/sunny.png")},
+	{caption: i18n.t("Partly cloudy"), texture: tfUrl("assets/partlycloudy.png")},
+	{caption: i18n.t("Cloudy"), texture: tfUrl("assets/cloudy.png")},
+	{caption: i18n.t("Rainy"), texture: tfUrl("assets/rainy.png")}
 ];
 var weatherSprites = [];
 
 var weedsTextures = [
-	"url(assets/weeds1.png)",
-	"url(assets/weeds2.png)",
-	"url(assets/weeds3.png)",
-	"url(assets/weeds4.png)",
-	"url(assets/weeds5.png)",
-	"url(assets/weeds6.png)",
-	"url(assets/weeds7.png)",
+	tfUrl("assets/weeds1.png"),
+	tfUrl("assets/weeds2.png"),
+	tfUrl("assets/weeds3.png"),
+	tfUrl("assets/weeds4.png"),
+	tfUrl("assets/weeds5.png"),
+	tfUrl("assets/weeds6.png"),
+	tfUrl("assets/weeds7.png"),
 ];
 
 var weedsThresholds = [];
@@ -73,14 +93,14 @@ for(var i = 0; i < weedsTextures.length; i++)
 	weedsThresholds.push((i + 1) / weedsTextures.length);
 
 var toolDefs = [
-	{img: 'assets/plow.png', caption: i18n.t('Plow'), click: 'plow'},
-	{img: 'assets/seed.png', caption: i18n.t('Corn'), click: 'seed'},
-	{img: 'assets/potatoSeed.png', caption: i18n.t('Potato'), click: 'seedTuber'},
-	{img: 'assets/harvest.png', caption: i18n.t('Harvest'), click: 'harvest'},
-	{img: 'assets/water.png', caption: i18n.t('Water'), click: 'water'},
-	{img: 'assets/weeding.png', caption: i18n.t('Weed'), click: 'weeding'},
-	{img: 'assets/mulch.png', caption: i18n.t('Mulch'), click: 'mulching'},
-	{img: 'assets/fertilizer.png', caption: i18n.t('Fertilize'), click: 'fertilize'},
+	{img: tfU('assets/plow.png'), caption: i18n.t('Plow'), click: 'plow'},
+	{img: tfU('assets/seed.png'), caption: i18n.t('Corn'), click: 'seed'},
+	{img: tfU('assets/potatoSeed.png'), caption: i18n.t('Potato'), click: 'seedTuber'},
+	{img: tfU('assets/harvest.png'), caption: i18n.t('Harvest'), click: 'harvest'},
+	{img: tfU('assets/water.png'), caption: i18n.t('Water'), click: 'water'},
+	{img: tfU('assets/weeding.png'), caption: i18n.t('Weed'), click: 'weeding'},
+	{img: tfU('assets/mulch.png'), caption: i18n.t('Mulch'), click: 'mulching'},
+	{img: tfU('assets/fertilizer.png'), caption: i18n.t('Fertilize'), click: 'fertilize'},
 ];
 
 var currentTool = -1;
@@ -131,6 +151,8 @@ function init(){
 	game.onAutoSave = function(str){
 		if(window.parent !== window){
 			window.parent.postMessage({ source: 'together-farm', type: 'autosave', payload: str }, '*');
+		} else {
+			window.postMessage({ source: 'together-farm', type: 'autosave', payload: str }, '*');
 		}
 		var el = document.getElementById('autoSaveText');
 		if(el) el.value = str;
@@ -139,23 +161,23 @@ function init(){
 	generateBoard();
 
 	var cornTextures = [
-		"url(assets/corn0.png)",
-		"url(assets/corn1.png)",
-		"url(assets/corn2.png)",
-		"url(assets/corn3.png)",
-		"url(assets/corn4.png)",
-		"url(assets/corn5.png)",
+		tfUrl("assets/corn0.png"),
+		tfUrl("assets/corn1.png"),
+		tfUrl("assets/corn2.png"),
+		tfUrl("assets/corn3.png"),
+		tfUrl("assets/corn4.png"),
+		tfUrl("assets/corn5.png"),
 	];
 	var cornThresholds = [
 		0.0, 0.25, 0.50, 0.75, 1.0, 2.0
 	];
 	var potatoTextures = [
-		"url(assets/potato0.png)",
-		"url(assets/potato1.png)",
-		"url(assets/potato2.png)",
-		"url(assets/potato3.png)",
-		"url(assets/potato4.png)",
-		"url(assets/potato5.png)",
+		tfUrl("assets/potato0.png"),
+		tfUrl("assets/potato1.png"),
+		tfUrl("assets/potato2.png"),
+		tfUrl("assets/potato3.png"),
+		tfUrl("assets/potato4.png"),
+		tfUrl("assets/potato5.png"),
 	];
 	var potatoThresholds = [
 		0.0, 0.25, 0.50, 0.75, 1.0, 2.0
@@ -196,7 +218,7 @@ function init(){
 					mulchSprite.style.position = 'absolute';
 					mulchSprite.style.width = '32px';
 					mulchSprite.style.height = '32px';
-					mulchSprite.style.backgroundImage = 'url(assets/mulch.png)';
+					mulchSprite.style.backgroundImage = tfUrl('assets/mulch.png');
 					mulchSprite.style.zIndex = 1;
 					cell.elem.appendChild(mulchSprite);
 					cell.mulchSprite = mulchSprite;
@@ -273,16 +295,16 @@ function init(){
 				}
 				var f = overlayMode(cell);
 				if(f < 1.){
-					outerBarElem.style.backgroundColor = '#ff0000';
-					innerBarElem.style.backgroundColor = '#3faf3f'; // The green bar indicates the growth percentage where 100% is merchandizable.
+					outerBarElem.style.backgroundColor = '#d97777';
+					innerBarElem.style.backgroundColor = TF_MINT;
 				}
 				else if(f < 2.){
-					outerBarElem.style.backgroundColor = '#3faf3f';
-					innerBarElem.style.backgroundColor = '#afaf3f'; // Indicate overgrowth of crops by weathered yellow
+					outerBarElem.style.backgroundColor = TF_MINT;
+					innerBarElem.style.backgroundColor = '#c9b858';
 				}
 				else{
-					outerBarElem.style.backgroundColor = '#afaf3f';
-					innerBarElem.style.backgroundColor = '#afaf3f'; // No point showing the difference in case of growth > 2.
+					outerBarElem.style.backgroundColor = '#c9b858';
+					innerBarElem.style.backgroundColor = '#c9b858';
 				}
 				innerBarElem.style.width = barWidth * (f % 1.) + 'px';
 			}
@@ -292,7 +314,7 @@ function init(){
 				cell.innerBarElem = undefined;
 			}
 
-			cell.elem.style.backgroundImage = cell.plowed ? 'url(assets/ridge.png)' : 'url(assets/dirt.png)';
+			cell.elem.style.backgroundImage = cell.plowed ? tfUrl('assets/ridge.png') : tfUrl('assets/dirt.png');
 		}
 	};
 
@@ -342,136 +364,134 @@ function createElements(){
 
 	// The containers are nested so that the inner container can be easily
 	// discarded to recreate the whole game.
-	var outerContainer = document.getElementById("container");
+	var outerContainer = document.getElementById("together-farm-sim-root") || document.getElementById("container");
+	if(!outerContainer)
+		return;
 	if(container)
 		outerContainer.removeChild(container);
 	container = document.createElement("div");
 	outerContainer.appendChild(container);
 	if(cursorElem)
 		cursorElem = null;
+	controlElems = [];
 
-	const toolBarMargin = 6;
-	const toolButtonBorder = 4;
+	const colGap = 8;
 
 	const tableWidth = (viewPortWidth * tilesize);
-	const toolbarWidth = (128 + toolBarMargin * 2 + toolButtonBorder * 2);
-	const totalWidth = tableWidth + toolbarWidth;
-	const controlButtonSize = 34; // includes the border which can have button-ish effect
-	var controlBarWidth = (controlElems.length + 1) * controlButtonSize + 8;
+	/* Dos columnas de botones cuadrados + padding del panel */
+	const toolbarWidth = 176;
+	const totalWidth = tableWidth + colGap + toolbarWidth;
+
+	container.style.position = 'relative';
+	container.style.display = 'grid';
+	container.style.gridTemplateColumns = tableWidth + 'px ' + toolbarWidth + 'px';
+	container.style.gridTemplateRows = (tilesize + 8) + 'px ' + (viewPortHeight * tilesize) + 'px auto';
+	container.style.columnGap = colGap + 'px';
+	container.style.rowGap = '12px';
+	container.style.alignItems = 'start';
+	container.style.width = totalWidth + 'px';
+	container.style.marginLeft = 'auto';
+	container.style.marginRight = 'auto';
+	container.style.boxSizing = 'border-box';
 
 	table = document.createElement("div");
-	table.style.borderStyle = 'solid';
-	table.style.borderWidth = '1px';
-	table.style.borderColor = 'red';
+	table.style.borderStyle = 'none';
+	table.style.borderWidth = '0';
 	table.style.position = 'relative';
-	table.style.left = '50%';
-	table.style.marginLeft = -(totalWidth) / 2 + 'px';
+	table.style.gridColumn = '1';
+	table.style.gridRow = '2';
 	table.style.width = tableWidth + 'px';
 	table.style.height = (viewPortHeight * tilesize) + 'px';
+	table.style.justifySelf = 'center';
 
-/*	messageElem = document.createElement('div');
-	container.appendChild(messageElem);
-	messageElem.style.fontFamily = 'Sans-serif';
-	messageElem.style.fontSize = '20pt';
-	messageElem.style.position = 'relative';
-	messageElem.style.color = 'red';*/
-
-	// Control bar (Horizontal toolbar at the top of the screen)
+	// Barra superior (pausa, overlays): columna del tablero, fila 1
 	controlBarElem = document.createElement('div');
-	controlBarElem.style.borderStyle = 'none';
-	controlBarElem.style.borderWidth = '1px';
-	controlBarElem.style.borderColor = 'red';
-	controlBarElem.style.backgroundColor = 'rgb(127,127,127)';
-	controlBarElem.style.position = 'relative';
-	controlBarElem.margin = '3px';
-	controlBarElem.style.left = '50%';
-	controlBarElem.style.marginLeft = (-totalWidth + tableWidth - controlBarWidth) / 2 + 'px';
-	controlBarElem.style.paddingLeft = '4px';
-	controlBarElem.style.width = controlBarWidth + 'px';
-	controlBarElem.style.height = (tilesize + 8) + 'px';
+	controlBarElem.className = 'tf-farmsim-control-bar noselect';
+	controlBarElem.style.gridColumn = '1';
+	controlBarElem.style.gridRow = '1';
+	controlBarElem.style.justifySelf = 'center';
+	controlBarElem.style.alignSelf = 'center';
+	controlBarElem.style.width = '100%';
+	controlBarElem.style.maxWidth = tableWidth + 'px';
+	controlBarElem.style.boxSizing = 'border-box';
 	container.appendChild(controlBarElem);
 	function addControlButton(img, onclick, updateState, desc){
-		var button = document.createElement('div');
-		button.style.width = '31px';
-		button.style.height = '31px';
-		button.style.position = 'absolute';
-		button.style.top = '4px';
-		button.style.left = (controlButtonSize * controlElems.length + 4) + 'px';
-		button.style.border = '2px #afafaf';
-		button.style.borderStyle = 'groove';
+		var button = document.createElement('button');
+		button.type = 'button';
+		button.className = 'tf-farmsim-control-btn noselect';
 		button.style.backgroundImage = img;
 		button.updateState = updateState;
-		button.addEventListener('mousedown', onclick);
-		button.addEventListener('mousedown', function(e){
+		button.addEventListener('click', onclick);
+		button.addEventListener('click', function(){
 			for(var i = 0; i < controlElems.length; i++){
-				controlElems[i].updateState(e);
+				controlElems[i].updateState();
 			}
 		});
 		button.onmouseover = function(e){
 			tipElem.innerHTML = i18n.t(desc);
+			tipElem.className = 'tf-farmsim-tip tf-farmsim-tip--controls noselect';
 			tipElem.style.display = 'block';
 			tipElem.style.width = '';
-			tipElem.style.top = (e.target.getBoundingClientRect().bottom + 4 - e.target.parentElement.getBoundingClientRect().top) + 'px';
-			tipElem.style.marginLeft = (-totalWidth / 2 + tableWidth / 2 - tipElem.getBoundingClientRect().width / 2) + 'px';
+			tipElem.style.left = '50%';
+			tipElem.style.marginLeft = '0';
+			tipElem.style.transform = 'translateX(-50%)';
+			tipElem.style.top = (e.currentTarget.getBoundingClientRect().bottom + 4 - container.getBoundingClientRect().top) + 'px';
 		};
-		button.onmouseleave = function(e){
+		button.onmouseleave = function(){
 			tipElem.style.display = 'none';
-		}
+		};
 		controlBarElem.appendChild(button);
-		controlBarWidth = (controlElems.length + 1) * controlButtonSize + 8;
-		controlBarElem.style.width = controlBarWidth + 'px';
-		controlBarElem.style.marginLeft = (-totalWidth + tableWidth - controlBarWidth) / 2 + 'px';
 		controlElems.push(button);
 	}
-	addControlButton('url("assets/pause.png")', function(e){
+	addControlButton(tfUrl('assets/pause.png'), function(){
 		game.pause();
-	}, function(e){
-		this.style.borderStyle = game.paused ? 'inset' : 'groove';
+	}, function(){
+		this.classList.toggle('tf-farmsim-control-btn--on', !!game.paused);
 	}, "Pause");
 
 	function growthCallback(cell){
 		return cell.crop && cell.crop.amount;
 	}
-	addControlButton('url("assets/potato4.png")', function(e){
+	addControlButton(tfUrl('assets/potato4.png'), function(){
 		overlayMode = overlayMode !== growthCallback ? growthCallback : null;
-	}, function(e){
-		this.style.borderStyle = overlayMode === growthCallback ? 'inset' : 'groove';
+	}, function(){
+		this.classList.toggle('tf-farmsim-control-btn--on', overlayMode === growthCallback);
 	}, "Show Crop Growth");
 
 	function fertilityCallback(cell){
 		return cell.fertility;
 	}
-	addControlButton('url("assets/fertilizer.png")', function(e){
+	addControlButton(tfUrl('assets/fertilizer.png'), function(){
 		overlayMode = overlayMode !== fertilityCallback ? fertilityCallback : null;
-	}, function(e){
-		this.style.borderStyle = overlayMode === fertilityCallback ? 'inset' : 'groove';
+	}, function(){
+		this.classList.toggle('tf-farmsim-control-btn--on', overlayMode === fertilityCallback);
 	}, "Show Fertility");
 
 	function weedCallback(cell){
 		return cell.weeds;
 	}
-	addControlButton('url("assets/weedGrass.png")', function(e){
+	addControlButton(tfUrl('assets/weedGrass.png'), function(){
 		overlayMode = overlayMode !== weedCallback ? weedCallback : null;
-	}, function(e){
-		this.style.borderStyle = overlayMode === weedCallback ? 'inset' : 'groove';
+	}, function(){
+		this.classList.toggle('tf-farmsim-control-btn--on', overlayMode === weedCallback);
 	}, "Show Weed Density");
 
 	function waterCallback(cell){
 		return cell.humidity;
 	}
-	addControlButton('url("assets/water.png")', function(e){
+	addControlButton(tfUrl('assets/water.png'), function(){
 		overlayMode = overlayMode !== waterCallback ? waterCallback : null;
-	}, function(e){
-		this.style.borderStyle = overlayMode === waterCallback ? 'inset' : 'groove';
+	}, function(){
+		this.classList.toggle('tf-farmsim-control-btn--on', overlayMode === waterCallback);
 	}, "Show Humidity");
 
 	function potatoPestCallback(cell){
 		return cell.potatoPest;
 	}
-	addControlButton('url("assets/potatoSeed.png")', function(e){
+	addControlButton(tfUrl('assets/potatoSeed.png'), function(){
 		overlayMode = overlayMode !== potatoPestCallback ? potatoPestCallback : null;
-	}, function(e){
-		this.style.borderStyle = overlayMode === potatoPestCallback ? 'inset' : 'groove';
+	}, function(){
+		this.classList.toggle('tf-farmsim-control-btn--on', overlayMode === potatoPestCallback);
 	}, "Show Potato Pest Level");
 
 	container.appendChild(table);
@@ -485,7 +505,7 @@ function createElements(){
 			tileElem.style.position = 'absolute';
 			tileElem.style.top = (tilesize * iy) + 'px';
 			tileElem.style.left = (tilesize * ix) + 'px';
-			tileElem.style.backgroundImage = "url(assets/dirt.png)";
+			tileElem.style.backgroundImage = tfUrl('assets/dirt.png');
 			tileElem.onmousedown = function(e){
 				var idx = tileElems.indexOf(this);
 				var xy = coordOfElem(this);
@@ -516,7 +536,7 @@ function createElements(){
 		rainElem.style.top = '0px';
 		rainElem.style.width = table.style.width;
 		rainElem.style.height = table.style.height;
-		rainElem.style.backgroundImage = 'url(assets/rain.png)';
+		rainElem.style.backgroundImage = tfUrl('assets/rain.png');
 		rainElem.style.animation = i ? 'rain2' : 'rain';
 		rainElem.style.animationDuration = (0.7153 + i * 0.765) + 's';
 		rainElem.style.animationIterationCount = 'infinite';
@@ -536,7 +556,7 @@ function createElements(){
 	pauseOverlay.style.top = '0px';
 	pauseOverlay.style.width = table.style.width;
 	pauseOverlay.style.height = table.style.height;
-	pauseOverlay.style.backgroundColor = 'rgba(63,63,63,0.3)';
+	pauseOverlay.style.backgroundColor = 'rgba(74,55,55,0.28)';
 	for(var i = 0; i < 2; i++){
 		pauseOverlay.appendChild((function (left){
 			var elem = document.createElement("div");
@@ -545,7 +565,7 @@ function createElements(){
 			elem.style.top = (viewPortHeight * tilesize) * (1 / 4) + 'px';
 			elem.style.width = (viewPortWidth * tilesize) * (1 / 8) + 'px';
 			elem.style.height = (viewPortHeight * tilesize) * (1 / 2) + 'px';
-			elem.style.backgroundColor = 'rgba(0,0,0,0.5)';
+			elem.style.backgroundColor = 'rgba(74,55,55,0.42)';
 			return elem;
 		})([5,9][i]));
 	}
@@ -557,12 +577,10 @@ function createElements(){
 		if(currentTool === idx)
 			idx = -1;
 		for(var i = 0; i < toolElems.length; i++){
-			toolElems[i].style.backgroundColor = '#7f7fff';
-			toolElems[i].style.border = 'outset 4px #7f7f7f';
+			toolElems[i].classList.remove('tf-farmsim-tool--active');
 		}
 		if(0 <= idx && idx < toolElems.length){
-			toolElems[idx].style.backgroundColor = '#00ffff';
-			toolElems[idx].style.border = 'outset 4px #ff0000';
+			toolElems[idx].classList.add('tf-farmsim-tool--active');
 		}
 		currentTool = idx;
 	}
@@ -572,164 +590,146 @@ function createElements(){
 	currentTool = -1;
 //	currentRotation = 0;
 
-	// Tool bar
+	// Barra de herramientas (columna derecha, filas 1–2)
 	toolBarElem = document.createElement('div');
-	toolBarElem.setAttribute('class', 'noselect');
-	toolBarElem.style.borderStyle = 'solid';
-	toolBarElem.style.borderWidth = '1px';
-	toolBarElem.style.borderColor = 'red';
-	toolBarElem.style.position = 'absolute';
-	//toolBarElem.margin = toolBarMargin + 'px';
-	toolBarElem.style.top = '0px';
-	toolBarElem.style.left = '50%';
-	toolBarElem.style.marginLeft = (-totalWidth / 2 + tableWidth + toolBarMargin) +  'px';
-	toolBarElem.style.width = toolbarWidth + 'px';
-	toolBarElem.style.height = ((toolDefs.length) * (tilesize + toolBarMargin * 2) + toolButtonBorder * 2) + 'px';
+	toolBarElem.className = 'tf-farmsim-toolbar noselect';
+	toolBarElem.style.gridColumn = '2';
+	toolBarElem.style.gridRow = '1 / 3';
+	toolBarElem.style.alignSelf = 'stretch';
+	toolBarElem.style.boxSizing = 'border-box';
+	toolBarElem.style.width = '100%';
+	toolBarElem.style.minWidth = '0';
 	container.appendChild(toolBarElem);
 	for(var i = 0; i < toolDefs.length; i++){
-		var toolElem = document.createElement('div');
-		toolElem.style.position = 'absolute';
-		toolElem.style.width = '128px';
-		toolElem.style.height = '32px';
-		toolElem.style.left = toolBarMargin + 'px';
-		toolElem.style.top = (i * (tilesize + toolBarMargin * 2) + toolBarMargin) + 'px';
-		toolElem.style.border = 'outset 4px #7f7f7f';
-		toolElem.style.backgroundColor = '#7f7fff';
-		toolElem.style.textAlign = 'middle';
+		var toolElem = document.createElement('button');
+		toolElem.type = 'button';
+		toolElem.className = 'tf-farmsim-tool noselect';
 
 		var toolIcon = document.createElement('img');
-		toolIcon.style.pointerEvents = 'none';
+		toolIcon.className = 'tf-farmsim-tool-icon';
+		toolIcon.alt = '';
 		toolIcon.src = toolDefs[i].img;
 		toolElem.appendChild(toolIcon);
 		var toolCaption = document.createElement('span');
-		toolCaption.style.pointerEvents = 'none';
-		toolCaption.innerHTML = toolDefs[i].caption;
-		toolCaption.setAttribute('class', 'noselect');
+		toolCaption.className = 'tf-farmsim-tool-label noselect';
+		toolCaption.textContent = toolDefs[i].caption;
 		toolElem.appendChild(toolCaption);
 
-		toolElem.onclick = function(e){
+		toolElem.addEventListener('click', function(){
 			selectTool(toolElems.indexOf(this));
-		};
+		});
 
-		toolElem.onmouseover = function(e){
-			var i = toolElems.indexOf(e.target);
-			if(0 <= i && i < toolDefs.length){
-				var methodName = toolDefs[i].click;
+		toolElem.addEventListener('mouseover', function(e){
+			var el = e.currentTarget;
+			var ti = toolElems.indexOf(el);
+			if(0 <= ti && ti < toolDefs.length){
+				var methodName = toolDefs[ti].click;
 				if(methodName in game){
 					tipElem.innerHTML = game[methodName].description();
+					tipElem.className = 'tf-farmsim-tip tf-farmsim-tip--tools noselect';
 					tipElem.style.display = 'block';
 					tipElem.style.width = '';
-					tipElem.style.top = (e.target.getBoundingClientRect().top - e.target.parentElement.getBoundingClientRect().top) + 'px';
-					tipElem.style.marginLeft = (totalWidth / 2 - toolbarWidth - tipElem.getBoundingClientRect().width) + 'px';
+					tipElem.style.transform = 'none';
+					tipElem.style.left = '8px';
+					tipElem.style.marginLeft = '0';
+					var rect = el.getBoundingClientRect();
+					var crect = container.getBoundingClientRect();
+					tipElem.style.top = (rect.top - crect.top) + 'px';
 					return;
 				}
 			}
 			tipElem.style.display = 'none';
-		};
+		});
 
-		toolElem.onmouseleave = function(e){
+		toolElem.addEventListener('mouseleave', function(){
 			tipElem.style.display = 'none';
-		}
+		});
 
 		toolBarElem.appendChild(toolElem);
 		toolElems.push(toolElem);
 	}
 
 	var bottomPanel = document.createElement('div');
-	bottomPanel.style.margin = '4px';
-	bottomPanel.style.position = 'relative';
-	bottomPanel.style.height = '13em';
+	bottomPanel.className = 'tf-farmsim-bottom noselect';
+	bottomPanel.style.gridColumn = '1 / 3';
+	bottomPanel.style.gridRow = '3';
+	bottomPanel.style.width = '100%';
 	container.appendChild(bottomPanel);
 
+	var slotBox = document.createElement('div');
+	slotBox.className = 'tf-farmsim-info-box noselect';
+	var slotTitle = document.createElement('div');
+	slotTitle.className = 'tf-farmsim-panel-title noselect';
+	slotTitle.textContent = i18n.t('Slot info');
+	slotBox.appendChild(slotTitle);
 	infoElem = document.createElement('div');
-	infoElem.style.backgroundColor = '#ffff7f';
-	infoElem.style.border = '1px solid #00f';
-	infoElem.style.padding = '2px';
-	infoElem.style.position = 'absolute';
-	infoElem.style.left = '50%';
-	infoElem.style.marginLeft = (-totalWidth / 2) + 'px';
-	infoElem.style.top = '0px';
-	infoElem.style.width = '256px';
-	infoElem.style.height = '14em';
-	infoElem.style.lineHeight = '120%';
-	infoElem.style.fontSize = '80%';
-	bottomPanel.appendChild(infoElem);
+	infoElem.className = 'tf-farmsim-panel-body noselect';
+	infoElem.style.lineHeight = '1.4';
+	slotBox.appendChild(infoElem);
+	bottomPanel.appendChild(slotBox);
 
-	// The global status panel shows information about the player and other global things.
-	var gstatusPanel = document.createElement('div');
-	gstatusPanel.style.backgroundColor = '#ffffaf';
-	gstatusPanel.style.border = '1px solid #00f';
-	gstatusPanel.style.padding = '2px';
-	gstatusPanel.style.position = 'absolute';
-	gstatusPanel.style.left = '50%';
-	gstatusPanel.style.marginLeft = (-totalWidth / 2 + 268) + 'px';
-	gstatusPanel.style.top = '0px';
-	gstatusPanel.style.lineHeight = '120%';
-	gstatusPanel.style.fontSize = '80%';
+	var dayBox = document.createElement('div');
+	dayBox.className = 'tf-farmsim-info-box tf-farmsim-info-box--day noselect';
+	var dayTitle = document.createElement('div');
+	dayTitle.className = 'tf-farmsim-panel-title noselect';
+	dayTitle.textContent = i18n.t('Day info');
+	dayBox.appendChild(dayTitle);
+	var dayBody = document.createElement('div');
+	dayBody.className = 'tf-farmsim-panel-body noselect';
+	dayBody.style.position = 'relative';
+	dayBody.style.lineHeight = '1.4';
 	gstatusTime = document.createElement('div');
 	gstatusTime.style.fontFamily = 'Sans-serif';
 	gstatusTime.style.left = '5px';
 	gstatusTime.style.top = '5px';
-	gstatusPanel.appendChild(gstatusTime);
+	dayBody.appendChild(gstatusTime);
 	gstatusText = document.createElement('div');
 	gstatusText.style.fontFamily = 'Sans-serif';
 	gstatusText.style.left = '5px';
 	gstatusText.style.top = '5px';
-	gstatusPanel.appendChild(gstatusText);
+	dayBody.appendChild(gstatusText);
 	var gstatusWPBarContainer = document.createElement('div');
-	gstatusPanel.appendChild(gstatusWPBarContainer);
-	gstatusWPBarContainer.style.backgroundColor = '#000';
-	gstatusWPBarContainer.style.border = '1px #7f7f7f solid';
+	dayBody.appendChild(gstatusWPBarContainer);
+	gstatusWPBarContainer.style.backgroundColor = '#e2e6ef';
+	gstatusWPBarContainer.style.border = '2px solid ' + TF_BORDER;
 	gstatusWPBarContainer.style.width = statusBarWidth + 'px';
 	gstatusWPBarContainer.style.height = '8px';
 	gstatusWPBar = document.createElement('div');
 	gstatusWPBarContainer.appendChild(gstatusWPBar);
-	gstatusWPBar.style.backgroundColor = '#f0f';
+	gstatusWPBar.style.backgroundColor = TF_LAVENDER;
 	gstatusWPBar.style.width = statusBarWidth + 'px';
 	gstatusWPBar.style.height = '8px';
-	gstatusWPBarContainer.appendChild(gstatusWPBar);
 	gstatusCashText = document.createElement('div');
 	gstatusCashText.style.fontFamily = 'Sans-serif';
 	gstatusCashText.style.left = '5px';
 	gstatusCashText.style.top = '30px';
-	gstatusPanel.appendChild(gstatusCashText);
+	dayBody.appendChild(gstatusCashText);
 	gstatusWeatherText = document.createElement('div');
 	gstatusWeatherText.style.fontFamily = 'Sans-serif';
 	gstatusWeatherText.style.left = '5px';
 	gstatusWeatherText.style.top = '45px';
-	gstatusPanel.appendChild(gstatusWeatherText);
+	dayBody.appendChild(gstatusWeatherText);
 	for(var i = 0; i < weatherIcons.length; i++){
 		var sprite = document.createElement('div');
+		sprite.style.position = 'absolute';
 		sprite.style.backgroundImage = weatherIcons[i].texture;
 		sprite.style.left = '80px';
 		sprite.style.top = '40px';
 		sprite.style.width = '32px';
 		sprite.style.height = '32px';
 		weatherSprites.push(sprite);
-		gstatusPanel.appendChild(sprite);
+		dayBody.appendChild(sprite);
 	}
-	gstatusPanel.style.width = '256px';
-	gstatusPanel.style.height = '14em';
-	bottomPanel.appendChild(gstatusPanel);
+	dayBox.appendChild(dayBody);
+	bottomPanel.appendChild(dayBox);
 
-	// Tool tip window
 	tipElem = document.createElement('div');
+	tipElem.className = 'tf-farmsim-tip noselect';
 	tipElem.style.display = 'none';
 	tipElem.style.position = 'absolute';
 	tipElem.style.pointerEvents = 'none';
-	tipElem.style.left = '50%';
-	tipElem.style.top = '0px';
-	tipElem.style.width = '250px';
-	tipElem.style.marginLeft = (totalWidth / 2 - toolbarWidth - 250) + 'px';
-	tipElem.style.textAlign = 'left';
-	tipElem.style.border = 'solid 1px #0000ff';
-	tipElem.style.backgroundColor = 'rgba(215,215,191,0.75)';
-	tipElem.style.boxShadow = '4px 4px 6px rgba(0,0,0,0.75)';
-	tipElem.style.borderRadius = '4px';
-	tipElem.style.padding = '4px';	
-	tipElem.style.fontSize = '85%';
-	tipElem.style.whiteSpace = 'pre';
-	tipElem.style.zIndex = 200; // Should be on top of everything else
+	tipElem.style.whiteSpace = 'pre-wrap';
+	tipElem.style.zIndex = '200';
 	container.appendChild(tipElem);
 }
 
@@ -744,7 +744,7 @@ function selectTile(sel){
 	if(ix < width && iy < height){
 		if(!cursorElem){
 			cursorElem = document.createElement('div');
-			cursorElem.style.border = '2px blue solid';
+			cursorElem.style.border = '3px solid ' + TF_SKY;
 			cursorElem.style.pointerEvents = 'none';
 			table.appendChild(cursorElem);
 		}
@@ -790,6 +790,23 @@ function updateInfo(){
 		i18n.t("Potato Pest") + ": " + Math.floor(100 * cell.potatoPest) + "<br>" +
 		crop;
 }
+
+window.__togetherFarmTeardown = function(){
+	if(simRafId !== null){
+		cancelAnimationFrame(simRafId);
+		simRafId = null;
+	}
+	try{
+		if(game && game.onPausedChange)
+			game.onPausedChange = null;
+	}catch(e){}
+	game = null;
+	var root = document.getElementById("together-farm-sim-root") || document.getElementById("container");
+	if(root)
+		root.innerHTML = '';
+	container = null;
+	try{ delete window.__togetherGame; }catch(e1){ window.__togetherGame = undefined; }
+};
 
 
 })();

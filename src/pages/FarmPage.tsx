@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import type { Database, Json } from "@/lib/database.types";
+import { ExeWindowFrame } from "@/components/ExeWindowFrame";
+import { FarmSimHost } from "@/components/FarmSimHost";
 import { PetPanel } from "@/components/PetPanel";
 
 type FarmRow = Database["public"]["Tables"]["farms"]["Row"];
@@ -12,7 +14,6 @@ type HarvestPending = { cropType: string; x: number; y: number };
 
 export function FarmPage() {
   const { farmId } = useParams<{ farmId: string }>();
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [farm, setFarm] = useState<FarmRow | null>(null);
   const [tab, setTab] = useState<Tab>("farm");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -46,10 +47,17 @@ export function FarmPage() {
     void reloadFarm();
   }, [reloadFarm]);
 
-  const sendInitToIframe = useCallback((gameState: string | null) => {
-    const w = iframeRef.current?.contentWindow;
-    if (!w) return;
-    w.postMessage(
+  const farmSimGameStateJson = useMemo(() => {
+    if (!farm) return null;
+    if (farm.game_state === null || farm.game_state === undefined) return null;
+    return typeof farm.game_state === "string"
+      ? farm.game_state
+      : JSON.stringify(farm.game_state);
+  }, [farm?.game_state, farm?.version, farm?.updated_at]);
+
+  /** Reinicio explícito del sim (p. ej. error de guardado con mismo JSON). */
+  const sendFarmSimInit = useCallback((gameState: string | null) => {
+    window.postMessage(
       {
         source: "together-farm-parent",
         type: "init",
@@ -58,46 +66,6 @@ export function FarmPage() {
       "*",
     );
   }, []);
-
-  useEffect(() => {
-    const f = farm;
-    if (!f || tab !== "farm") return;
-    const iframeEl = iframeRef.current;
-    if (!iframeEl) return;
-
-    function bootstrap() {
-      if (!f) return;
-      const gs =
-        f.game_state === null || f.game_state === undefined
-          ? null
-          : typeof f.game_state === "string"
-            ? f.game_state
-            : JSON.stringify(f.game_state);
-      sendInitToIframe(gs);
-    }
-
-    function embedAlreadyLoaded(): boolean {
-      const el = iframeRef.current;
-      if (!el) return false;
-      try {
-        const path = el.contentWindow?.location?.pathname ?? "";
-        return path.includes("embed.html");
-      } catch {
-        return false;
-      }
-    }
-
-    iframeEl.addEventListener("load", bootstrap, { once: true });
-
-    if (
-      iframeEl.contentDocument?.readyState === "complete" &&
-      embedAlreadyLoaded()
-    ) {
-      queueMicrotask(bootstrap);
-    }
-
-    return () => iframeEl.removeEventListener("load", bootstrap);
-  }, [farm, tab, sendInitToIframe]);
 
   const debouncedSave = useCallback(
     (payload: string) => {
@@ -117,7 +85,7 @@ export function FarmPage() {
           await reloadFarm();
           const gs =
             farm?.game_state == null ? null : JSON.stringify(farm.game_state);
-          sendInitToIframe(gs);
+          sendFarmSimInit(gs);
           return;
         }
         setSaveError(null);
@@ -125,16 +93,14 @@ export function FarmPage() {
         await reloadFarm();
       }, 900);
     },
-    [farmId, reloadFarm, sendInitToIframe, farm?.game_state],
+    [farmId, reloadFarm, sendFarmSimInit, farm?.game_state],
   );
 
   const commitHarvestFlow = useCallback(
     async (pending: HarvestPending) => {
       if (!farmId || !supabaseConfigured) return;
-      const w = iframeRef.current?.contentWindow;
-      if (!w) return;
 
-      w.postMessage(
+      window.postMessage(
         { source: "together-farm-parent", type: "requestSnapshot" },
         "*",
       );
@@ -160,7 +126,7 @@ export function FarmPage() {
           await reloadFarm();
           const gs =
             farm?.game_state == null ? null : JSON.stringify(farm.game_state);
-          sendInitToIframe(gs);
+          sendFarmSimInit(gs);
           return;
         }
         setSaveError(null);
@@ -174,7 +140,7 @@ export function FarmPage() {
 
       window.addEventListener("message", onSnap);
     },
-    [farmId, reloadFarm, sendInitToIframe, farm?.game_state],
+    [farmId, reloadFarm, sendFarmSimInit, farm?.game_state],
   );
 
   useEffect(() => {
@@ -214,17 +180,7 @@ export function FarmPage() {
           filter: `id=eq.${farmId}`,
         },
         () => {
-          void (async () => {
-            const row = await reloadFarm();
-            if (!row) return;
-            const gs =
-              row.game_state == null
-                ? null
-                : typeof row.game_state === "string"
-                  ? row.game_state
-                  : JSON.stringify(row.game_state);
-            if (tab === "farm") sendInitToIframe(gs);
-          })();
+          void reloadFarm();
         },
       )
       .on(
@@ -249,7 +205,7 @@ export function FarmPage() {
       supabase.removeChannel(ch);
       window.clearInterval(poll);
     };
-  }, [farmId, reloadFarm, sendInitToIframe, tab]);
+  }, [farmId, reloadFarm]);
 
   async function createInvite() {
     if (!farmId || !supabaseConfigured) return;
@@ -325,41 +281,39 @@ export function FarmPage() {
       )}
 
       {tab === "farm" && (
-        <div className="overflow-hidden rounded-3xl border-8 border-pastel-pink bg-pastel-mint/40 shadow-sticker">
-          <div className="flex items-center justify-between gap-2 border-b-4 border-pastel-pink bg-pastel-mint px-3 py-2 sm:px-4">
-            <span className="truncate font-display text-xs font-bold uppercase tracking-wide text-ui-ink sm:text-sm">
-              Granja.exe
-            </span>
-            <div className="flex shrink-0 gap-1.5">
-              <span className="h-3 w-3 rounded-full border-2 border-ui-border bg-pastel-yellow" />
-              <span className="h-3 w-3 rounded-full border-2 border-ui-border bg-pastel-mint" />
-              <span className="h-3 w-3 rounded-full border-2 border-ui-border bg-pastel-pink" />
-            </div>
-          </div>
-          <div className="bg-pastel-cream/50 p-1 sm:p-2">
-            <iframe
-              ref={iframeRef}
-              title="Granja"
-              src="/farmsim/embed.html"
-              className="block h-[min(70vh,560px)] w-full rounded-2xl border-4 border-ui-border bg-[#3d5c3d]"
-            />
-          </div>
-        </div>
+        <ExeWindowFrame
+          title="Granja.exe"
+          className="mx-auto w-full max-w-5xl"
+          bodyClassName="overflow-x-auto p-4 sm:p-6"
+        >
+          <FarmSimHost
+            gameStateJson={farmSimGameStateJson}
+            className="mx-auto w-fit max-w-full rounded-2xl bg-pastel-mint px-1 py-2 sm:px-2"
+          />
+        </ExeWindowFrame>
       )}
 
       {tab === "pet" && farm && (
-        <div className="tf-panel mx-auto max-w-md p-6">
+        <ExeWindowFrame
+          title="Mascota.exe"
+          className="mx-auto max-w-md"
+          bodyClassName="p-4 sm:p-6"
+        >
           <PetPanel
             farmId={farmId}
             cornCount={farm.corn_count}
             potatoCount={farm.potato_count}
             onInventoryChange={() => void reloadFarm()}
           />
-        </div>
+        </ExeWindowFrame>
       )}
 
       {tab === "invite" && (
-        <div className="tf-panel mx-auto max-w-lg p-6">
+        <ExeWindowFrame
+          title="Invitar.exe"
+          className="mx-auto max-w-lg"
+          bodyClassName="p-4 sm:p-6"
+        >
           <h2 className="mt-0 font-display text-2xl font-bold text-ui-ink">
             Invitar compañero
           </h2>
@@ -371,7 +325,7 @@ export function FarmPage() {
             type="button"
             disabled={inviteBusy}
             onClick={() => void createInvite()}
-            className="tf-btn-accent mt-4"
+            className="tf-btn-soft mt-4 w-full py-2.5 text-sm font-bold"
           >
             {inviteBusy ? "Generando…" : "Generar enlace y copiar"}
           </button>
@@ -380,7 +334,7 @@ export function FarmPage() {
               {inviteLink}
             </p>
           )}
-        </div>
+        </ExeWindowFrame>
       )}
     </div>
   );
