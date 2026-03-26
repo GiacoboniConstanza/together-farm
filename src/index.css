@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply min-h-screen font-sans text-ui-ink antialiased;
+    background-color: #91d9ae;
+    background-image: radial-gradient(
+        circle at 1px 1px,
+        rgba(74, 55, 55, 0.06) 1px,
+        transparent 0
+      ),
+      linear-gradient(
+        168deg,
+        #91d9ae 0%,
+        #b8e8d0 26%,
+        #d2c2f4 52%,
+        #7ebae8 100%
+      );
+    background-size: 14px 14px, 100% 100%;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+  button {
+    @apply cursor-pointer;
+    font: inherit;
+  }
+
+  input {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .tf-panel {
+    @apply rounded-3xl border-4 border-ui-border bg-pastel-cream/95 shadow-sticker backdrop-blur-sm;
+  }
+
+  .tf-btn {
+    @apply inline-flex items-center justify-center rounded-2xl border-4 border-ui-border bg-white px-4 py-2 text-sm font-bold text-ui-ink shadow-sticker-sm transition-transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+  }
+
+  /* Misma jerarquía tipográfica que .tf-btn, menos “sticker”: borde fino y sin sombra sólida */
+  .tf-btn-soft {
+    @apply inline-flex items-center justify-center rounded-xl border-2 border-ui-border/55 bg-white/95 px-4 py-2 text-sm font-bold text-ui-ink shadow-none transition-colors hover:border-ui-border/85 hover:bg-pastel-cream/60 active:bg-pastel-cream/90 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-ui-border/55 disabled:hover:bg-white/95;
+  }
+
+  .tf-btn-primary {
+    @apply tf-btn border-ui-border bg-pastel-mint hover:bg-pastel-mint/90;
+  }
+
+  .tf-btn-accent {
+    @apply tf-btn border-ui-border bg-pastel-sky text-ui-ink hover:bg-pastel-sky/90;
+  }
+
+  .tf-btn-warn {
+    @apply tf-btn border-ui-border bg-pastel-peach hover:bg-pastel-peach/90;
+  }
+
+  .tf-input {
+    @apply w-full rounded-2xl border-4 border-ui-border bg-white px-3 py-2.5 text-ui-ink shadow-sticker-sm outline-none ring-pastel-pink focus:border-pastel-pink focus:ring-2;
+  }
+
+  .tf-link {
+    @apply font-semibold text-pastel-sky underline decoration-2 underline-offset-2 hover:text-ui-ink;
+  }
+
+  .tf-pixel-art {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+}
