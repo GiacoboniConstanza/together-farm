@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import petSprite from "@/assets/pet-sprite.jpg";
+import { PetFlappyGame } from "@/components/PetFlappyGame";
 import { PetRunnerGame } from "@/components/PetRunnerGame";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
@@ -97,6 +98,7 @@ export function PetPanel({
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [gameOpen, setGameOpen] = useState(false);
+  const [flappyOpen, setFlappyOpen] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -118,6 +120,7 @@ export function PetPanel({
   useEffect(() => {
     setEditingName(false);
     setGameOpen(false);
+    setFlappyOpen(false);
   }, [farmId]);
 
   useEffect(() => {
@@ -281,18 +284,34 @@ export function PetPanel({
         </>
       )}
       {pet && !sleeping && (
-        <button
-          type="button"
-          disabled={busy !== null}
-          className="tf-btn-soft mt-4 w-full py-2.5 text-sm font-bold"
-          onClick={() => setGameOpen(true)}
-        >
-          Jugar (salta obstáculos)
-        </button>
+        <div className="mt-4 flex flex-col gap-2">
+          <button
+            type="button"
+            disabled={busy !== null}
+            className="tf-btn-soft w-full py-2.5 text-sm font-bold"
+            onClick={() => setGameOpen(true)}
+          >
+            Jugar (carrera tipo Dino)
+          </button>
+          <button
+            type="button"
+            disabled={busy !== null}
+            className="tf-btn-soft w-full py-2.5 text-sm font-bold"
+            onClick={() => setFlappyOpen(true)}
+          >
+            Jugar (vuelo entre tubos)
+          </button>
+        </div>
       )}
       <PetRunnerGame
         open={gameOpen}
         onClose={() => setGameOpen(false)}
+        petName={displayName}
+        farmId={farmId}
+      />
+      <PetFlappyGame
+        open={flappyOpen}
+        onClose={() => setFlappyOpen(false)}
         petName={displayName}
         farmId={farmId}
       />
