@@ -5,10 +5,18 @@ import type { Database, Json } from "@/lib/database.types";
 import { ExeWindowFrame } from "@/components/ExeWindowFrame";
 import { FarmSimHost } from "@/components/FarmSimHost";
 import { PetPanel } from "@/components/PetPanel";
+import { CompanionSection } from "@/components/CompanionSection";
 
 type FarmRow = Database["public"]["Tables"]["farms"]["Row"];
 
-type Tab = "farm" | "pet" | "invite";
+function farmHeaderLabel(f: FarmRow | null): string {
+  if (!f) return "—";
+  const n = f.name?.trim();
+  if (n) return n;
+  return `Granja ${f.id.slice(0, 8)}…`;
+}
+
+type Tab = "farm" | "pet" | "companion";
 
 type HarvestPending = { cropType: string; x: number; y: number };
 
@@ -254,10 +262,10 @@ export function FarmPage() {
           ← Inicio
         </Link>
         <span className="font-display text-sm font-bold text-ui-ink sm:text-base">
-          Granja {farm?.id.slice(0, 8)}… · v{farm?.version ?? "—"}
+          {farmHeaderLabel(farm)} · v{farm?.version ?? "—"}
         </span>
         <nav className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
-          {(["farm", "pet", "invite"] as const).map((t) => (
+          {(["farm", "pet", "companion"] as const).map((t) => (
             <button
               key={t}
               type="button"
@@ -268,7 +276,7 @@ export function FarmPage() {
                   : "border-ui-border/60 bg-white/90 text-ui-ink/80 hover:border-ui-border"
               }`}
             >
-              {t === "farm" ? "Granja" : t === "pet" ? "Mascota" : "Invitar"}
+              {t === "farm" ? "Granja" : t === "pet" ? "Mascota" : "Compañero"}
             </button>
           ))}
         </nav>
@@ -308,33 +316,15 @@ export function FarmPage() {
         </ExeWindowFrame>
       )}
 
-      {tab === "invite" && (
-        <ExeWindowFrame
-          title="Invitar.exe"
-          className="mx-auto max-w-lg"
-          bodyClassName="p-4 sm:p-6"
-        >
-          <h2 className="mt-0 font-display text-2xl font-bold text-ui-ink">
-            Invitar compañero
-          </h2>
-          <p className="text-sm font-medium text-ui-ink/75">
-            Solo puede haber 2 personas por granja. El enlace caduca en 7
-            días.
-          </p>
-          <button
-            type="button"
-            disabled={inviteBusy}
-            onClick={() => void createInvite()}
-            className="tf-btn-soft mt-4 w-full py-2.5 text-sm font-bold"
-          >
-            {inviteBusy ? "Generando…" : "Generar enlace y copiar"}
-          </button>
-          {inviteLink && (
-            <p className="mt-4 break-all rounded-2xl border-2 border-ui-border/30 bg-white/80 p-3 font-mono text-xs text-ui-ink">
-              {inviteLink}
-            </p>
-          )}
-        </ExeWindowFrame>
+      {tab === "companion" && farmId && farm && (
+        <CompanionSection
+          farmId={farmId}
+          farmCreatedBy={farm.created_by}
+          inviteLink={inviteLink}
+          inviteBusy={inviteBusy}
+          onCreateInvite={() => void createInvite()}
+          onRewardClaimed={() => void reloadFarm()}
+        />
       )}
     </div>
   );

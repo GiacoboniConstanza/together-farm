@@ -105,6 +105,40 @@ var toolDefs = [
 
 var currentTool = -1;
 
+/** Rompe el patrón de mosaico obvio: desfase y escala ligeramente distintos por casilla del mundo. */
+function setGroundTextureAppearance(elem, worldX, worldY){
+	var px = ((worldX * 17 + worldY * 31) % 20);
+	var py = ((worldX * 23 + worldY * 19) % 20);
+	elem.style.backgroundSize = '36px 36px';
+	elem.style.backgroundPosition = px + 'px ' + py + 'px';
+	elem.style.backgroundRepeat = 'repeat';
+	elem.style.imageRendering = 'pixelated';
+}
+
+function ensureFarmsimStyles(){
+	if(document.getElementById('tf-farmsim-styles')) return;
+	var st = document.createElement('style');
+	st.id = 'tf-farmsim-styles';
+	st.textContent =
+		'@keyframes tf-cursor-glow{' +
+		'0%,100%{box-shadow:0 0 0 2px rgba(126,186,232,0.35),inset 0 0 0 1px rgba(255,255,255,0.35);}' +
+		'50%{box-shadow:0 0 10px 3px rgba(126,186,232,0.5),inset 0 0 0 1px rgba(255,255,255,0.45);}' +
+		'}' +
+		'.tf-farmsim-field{' +
+		'border-radius:10px;overflow:hidden;' +
+		'box-shadow:0 4px 16px rgba(74,55,55,0.16),inset 0 1px 0 rgba(255,255,255,0.22);' +
+		'border:2px solid ' + TF_BORDER + ';' +
+		'box-sizing:border-box;' +
+		'}' +
+		'.tf-farmsim-cursor{' +
+		'border:2px solid ' + TF_SKY + ' !important;' +
+		'border-radius:4px;' +
+		'animation:tf-cursor-glow 2.2s ease-in-out infinite;' +
+		'z-index:40;' +
+		'box-sizing:border-box;' +
+		'}';
+	document.head.appendChild(st);
+}
 
 function bootTogetherFarm(saveJson){
 	window.__TOGETHER_EMBED__ = true;
@@ -315,6 +349,7 @@ function init(){
 			}
 
 			cell.elem.style.backgroundImage = cell.plowed ? tfUrl('assets/ridge.png') : tfUrl('assets/dirt.png');
+			setGroundTextureAppearance(cell.elem, x, y);
 		}
 	};
 
@@ -360,6 +395,7 @@ function generateBoard(){
 }
 
 function createElements(){
+	ensureFarmsimStyles();
 	tileElems = new Array(viewPortWidth * viewPortHeight);
 
 	// The containers are nested so that the inner container can be easily
@@ -395,8 +431,7 @@ function createElements(){
 	container.style.boxSizing = 'border-box';
 
 	table = document.createElement("div");
-	table.style.borderStyle = 'none';
-	table.style.borderWidth = '0';
+	table.className = 'tf-farmsim-field';
 	table.style.position = 'relative';
 	table.style.gridColumn = '1';
 	table.style.gridRow = '2';
@@ -505,7 +540,9 @@ function createElements(){
 			tileElem.style.position = 'absolute';
 			tileElem.style.top = (tilesize * iy) + 'px';
 			tileElem.style.left = (tilesize * ix) + 'px';
+			tileElem.className = 'tf-farmsim-tile';
 			tileElem.style.backgroundImage = tfUrl('assets/dirt.png');
+			setGroundTextureAppearance(tileElem, ix + scrollPos[0], iy + scrollPos[1]);
 			tileElem.onmousedown = function(e){
 				var idx = tileElems.indexOf(this);
 				var xy = coordOfElem(this);
@@ -704,22 +741,34 @@ function createElements(){
 	gstatusCashText.style.left = '5px';
 	gstatusCashText.style.top = '30px';
 	dayBody.appendChild(gstatusCashText);
+	var weatherRow = document.createElement('div');
+	weatherRow.style.display = 'flex';
+	weatherRow.style.alignItems = 'flex-start';
+	weatherRow.style.gap = '10px';
+	weatherRow.style.marginTop = '4px';
 	gstatusWeatherText = document.createElement('div');
 	gstatusWeatherText.style.fontFamily = 'Sans-serif';
-	gstatusWeatherText.style.left = '5px';
-	gstatusWeatherText.style.top = '45px';
-	dayBody.appendChild(gstatusWeatherText);
+	gstatusWeatherText.style.flex = '1';
+	gstatusWeatherText.style.minWidth = '0';
+	weatherRow.appendChild(gstatusWeatherText);
+	var weatherIconHost = document.createElement('div');
+	weatherIconHost.style.position = 'relative';
+	weatherIconHost.style.width = '32px';
+	weatherIconHost.style.height = '32px';
+	weatherIconHost.style.flexShrink = '0';
 	for(var i = 0; i < weatherIcons.length; i++){
 		var sprite = document.createElement('div');
 		sprite.style.position = 'absolute';
+		sprite.style.left = '0';
+		sprite.style.top = '0';
 		sprite.style.backgroundImage = weatherIcons[i].texture;
-		sprite.style.left = '80px';
-		sprite.style.top = '40px';
 		sprite.style.width = '32px';
 		sprite.style.height = '32px';
 		weatherSprites.push(sprite);
-		dayBody.appendChild(sprite);
+		weatherIconHost.appendChild(sprite);
 	}
+	weatherRow.appendChild(weatherIconHost);
+	dayBody.appendChild(weatherRow);
 	dayBox.appendChild(dayBody);
 	bottomPanel.appendChild(dayBox);
 
@@ -744,15 +793,15 @@ function selectTile(sel){
 	if(ix < width && iy < height){
 		if(!cursorElem){
 			cursorElem = document.createElement('div');
-			cursorElem.style.border = '3px solid ' + TF_SKY;
+			cursorElem.className = 'tf-farmsim-cursor noselect';
 			cursorElem.style.pointerEvents = 'none';
 			table.appendChild(cursorElem);
 		}
 		cursorElem.style.position = 'absolute';
 		cursorElem.style.top = (tilesize * vy) + 'px';
 		cursorElem.style.left = (tilesize * vx) + 'px';
-		cursorElem.style.width = '30px';
-		cursorElem.style.height = '30px';
+		cursorElem.style.width = tilesize + 'px';
+		cursorElem.style.height = tilesize + 'px';
 		updateInfo();
 //		updateInventory();
 	}

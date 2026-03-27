@@ -13,28 +13,34 @@ export interface Database {
         Row: {
           id: string;
           created_by: string;
+          name: string;
           version: number;
           game_state: Json;
           corn_count: number;
           potato_count: number;
+          last_pong_reward_at: string | null;
           updated_at: string;
         };
         Insert: {
           id?: string;
           created_by: string;
+          name?: string;
           version?: number;
           game_state?: Json;
           corn_count?: number;
           potato_count?: number;
+          last_pong_reward_at?: string | null;
           updated_at?: string;
         };
         Update: {
           id?: string;
           created_by?: string;
+          name?: string;
           version?: number;
           game_state?: Json;
           corn_count?: number;
           potato_count?: number;
+          last_pong_reward_at?: string | null;
           updated_at?: string;
         };
       };
@@ -98,6 +104,12 @@ export interface Database {
     };
     Functions: {
       create_farm: { Args: Record<string, never>; Returns: string };
+      set_farm_name: {
+        Args: { p_farm_id: string; p_name: string };
+        Returns: undefined;
+      };
+      delete_farm: { Args: { p_farm_id: string }; Returns: undefined };
+      leave_farm: { Args: { p_farm_id: string }; Returns: undefined };
       create_invite: { Args: { p_farm_id: string }; Returns: string };
       accept_invite: { Args: { p_token: string }; Returns: string };
       save_farm_state: {
@@ -126,6 +138,15 @@ export interface Database {
       };
       pet_bathe: { Args: { p_farm_id: string }; Returns: undefined };
       pet_sleep: { Args: { p_farm_id: string }; Returns: undefined };
+      grant_pong_cash_reward: {
+        Args: {
+          p_farm_id: string;
+          p_left_score: number;
+          p_right_score: number;
+          p_max_score: number;
+        };
+        Returns: Json;
+      };
     };
   };
 }
